@@ -15,6 +15,7 @@ using System.Web.Mvc;
 using System.Configuration;
 using System.IdentityModel.Tokens;
 using WebApp_B2C_DotNet.App_Start;
+using Microsoft.Owin.Security.ActiveDirectory;
 
 namespace WebApp_B2C_DotNet
 {
@@ -69,26 +70,12 @@ namespace WebApp_B2C_DotNet
             // Required for AAD B2C
             app.Use(typeof(B2COpenIdConnectAuthenticationMiddleware), app, b2coptions);
 
-            OpenIdConnectAuthenticationOptions b2eoptions = new OpenIdConnectAuthenticationOptions
-            {
-                Authority = String.Format(aadInstance, "common"),
-                ClientId = clientId,
-                RedirectUri = redirectUri,
-                PostLogoutRedirectUri = redirectUri,
-                Notifications = new OpenIdConnectAuthenticationNotifications
+            app.UseWindowsAzureActiveDirectoryBearerAuthentication(
+                new WindowsAzureActiveDirectoryBearerAuthenticationOptions
                 {
-                    AuthenticationFailed = AuthenticationFailed,
-                },
-
-                TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = false,
-                },
-
-                AuthenticationType = "OpenIdConnect-B2E",
-            };
-
-            app.UseOpenIdConnectAuthentication(b2eoptions);
+                    Audience = ConfigurationManager.AppSettings["ida:Audience"],
+                    Tenant = ConfigurationManager.AppSettings["ida:Tenant"]
+});
         }
 
         // Used for avoiding yellow-screen-of-death
